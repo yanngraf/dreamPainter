@@ -14,6 +14,7 @@
 let runwayModelName = "SPADE-LANDSCAPE";  // SPADE-COCO or SPADE-LANDSCAPE
 var socket = io.connect('http://127.0.0.1:3000/');
 
+let waitingTimeDuration = 200;
 
 // Initilizing the variables
 let poses = [];
@@ -26,7 +27,7 @@ let poseNet;
 let v;
 
 // Body part vart initialisation
-let righEye_y;
+let nose_y;
 let leftWrist_x;
 let leftWrist_y;
 
@@ -45,8 +46,7 @@ let paintColor = 0;
 let paintBrushProximityCounter = 0;
 let brushName = "";
 
-
-let waitingSince = 0;
+let waitingSince;
 let color_background = 50;
 let color_background_set = 0;
 
@@ -94,8 +94,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     ctx.drawImage(video2, 0, 0, 300, 280);
     // Send to Runway the current element in the canvas
     socket.emit('query', {
-        //input: canvas.toDataURL('image/jpeg'),
-        // semantic_map: canvas.toDataURL('image/jpeg'),
         semantic_map: document.getElementById("defaultCanvas0").toDataURL('image/jpeg'),        
     });
   }
@@ -125,13 +123,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
   // When there is a data event, update the log element
   socket.on('data', newDrawing);
 });
-
-// From Photosketch
-// ===========================================================================
-
-
-
-
 
 
 
@@ -174,65 +165,60 @@ function setup() {
 
 function draw() {
 
-  background(color_background);
-
+  background(color_background)
   drawHistory();
   drawHand();
-
   waitingMode(waitingSince);
   
-}
-
-
-
-
-function modelReady() {
-  //select('#status').html('Model Loaded');
+  waitingSince++;
 }
 
 
 
 
 
+
+// Draw the controls
 function drawHand() {
 
-  // if poses are available, draw them
+  // if poses are available, draw tools
   if(poses.length > 0) {
   
-    righEye_y = poses[0].pose.rightEye.y;
- 
+    nose_y = poses[0].pose.nose.y;
     leftWrist_x = poses[0].pose.leftWrist.x;
     leftWrist_y = poses[0].pose.leftWrist.y;
-  
     rightWrist_x = poses[0].pose.rightWrist.x;
     rightWrist_y = poses[0].pose.rightWrist.y;
-  
 
+    // if poses are detect, reset the counter.
+    waitingSince = 0;
 
-    // Enable / Disable the brush
-    if (leftWrist_y < righEye_y  ) {
-      //console.log("print");
+    // Check if hand is above nose && start painting
+    if (leftWrist_y < nose_y  ) {
       paintStatus = true;
     } else {
-      //console.log("lower");
       paintStatus = false;
     }
   
-    // Start Paintiner
+    /////// Testing - Draw the nose
+    stroke(255);
+    strokeWeight(1);
+    line(0, nose_y, 2000, nose_y);
+    noStroke();
+    ///////
+
+    // Start Painter
     if (paintStatus == true) {
+      //ellipse(rightWrist_x, rightWrist_y, 40);
 
-      //ellipse(poses[0].pose.nose.x, poses[0].pose.nose.y, 40);
-      ellipse(rightWrist_x, rightWrist_y, 40);
-
+      // Adding a data point (vector) to the history
       v = createVector(rightWrist_x,rightWrist_y,paintColor);
       history.push(v);
 
-
-
+      // if the vector history is too long, start removing from the end
       if (history.length > 2000) {
         history.shift(v);
       }
-
     }
 
 
@@ -275,7 +261,7 @@ function switchControls () {
 
 
 
-// Draws the trail painted for the history
+// Draws the trail painted from the history
 function drawHistory() {
   for (var i = 0; i < history.length; i++) {
     var pos = history[i];
@@ -296,7 +282,7 @@ function drawControls() {
     fill("red")
     text("controler on", leftWrist_x, leftWrist_y);
   }
-  // Draws the coutroller
+  // Draws the controller
   ellipse(leftWrist_x, leftWrist_y, 10);
   
 
@@ -311,40 +297,34 @@ function drawControls() {
 
 // Calling the waiting mode, 
 // When no one is detected in front of the camera.
-function waitingMode(vari) {
-
-  if (poses.length == 0) {
-
-    if (vari > 200) {
-
-      color_background = paintBrushSet[color_background_set][0];
-
-      if (color_background_set > 2) {
-        color_background_set = 0;
-      } 
-      color_background_set++;
-
-      waitingSince = 0;
-    } else {
-      waitingSince++;
-    }
-
-    // removing the old dots
-    history.shift(v);
-    //console.log(waitingSince);
-
+function waitingMode(time) {
   
+  // If no poses are detected, start remving the first vectors
+  if (poses.length == 0) {
+     history.shift(v);
   }
 
+  // If no poses are detectect since a long time
+  if (poses.length == 0 && time > waitingTimeDuration) {
+
+    color_background_set = Math.floor(random(0,6));
+    color_background = paintBrushSet[color_background_set][1];
+
+    waitingSince = 0;
+    
+  }
 }
 
 
-
 // RUNWAY - SOCKET.IO RELATED
+//Update the canvas with the model status
+function modelReady() {
+  select('#status').html('Model Loaded');
+}
+
 // retreives the full canvas and sends it to Runway with Socket.io
 function newDrawing(data){
   if(data && data.output) {
-    
     document.getElementById("empty").src = data.output;
   }
 }
@@ -374,7 +354,6 @@ function selectColorSet (runwayModelName) {
     console.log("semantic map for Model SPADE-LANDSCAPE selected");
   }
 }
-
 
 // Various stuff
 function keyTyped() {
