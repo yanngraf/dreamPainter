@@ -168,6 +168,9 @@ function draw() {
   background(color_background)
   drawHistory();
   drawHand();
+
+  //drawSkeleton();
+
   waitingMode(waitingSince);
   
   waitingSince++;
@@ -194,7 +197,7 @@ function drawHand() {
     waitingSince = 0;
 
     // Check if hand is above nose && start painting
-    if (leftWrist_y < nose_y  ) {
+    if (leftWrist_y < nose_y || rightWrist_y < nose_y ) {
       paintStatus = true;
     } else {
       paintStatus = false;
@@ -277,10 +280,10 @@ function drawControls() {
   if (paintStatus == true) {
 
     fill("green");
-    text("controler off", leftWrist_x, leftWrist_y);
+    text("controler off", leftWrist_x+10, leftWrist_y);
   } else {
     fill("red")
-    text("controler on", leftWrist_x, leftWrist_y);
+    text("controler on", leftWrist_x+10, leftWrist_y);
   }
   // Draws the controller
   ellipse(leftWrist_x, leftWrist_y, 10);
@@ -291,6 +294,17 @@ function drawControls() {
   ellipse(rightWrist_x, rightWrist_y, 10);
   text(brushName, rightWrist_x+10, rightWrist_y);
 
+}
+
+
+// Attaches the drawer to one side
+function attachDrawerHand (currentDrawer) {
+
+  if (leftWrist_y < rightWrist_y) {
+    paintSide = "left";
+  } else {
+    paintSide = "right";
+  }
 }
 
 
@@ -359,5 +373,23 @@ function selectColorSet (runwayModelName) {
 function keyTyped() {
   if (key === 's') {
     saveCanvas('photo', 'png');
+  }
+}
+
+
+// Posent Draw Skeleton
+
+// A function to draw the skeletons
+function drawSkeleton() {
+  // Loop through all the skeletons detected
+  for (let i = 0; i < poses.length; i++) {
+    let skeleton = poses[i].skeleton;
+    // For every skeleton, loop through all body connections
+    for (let j = 0; j < skeleton.length; j++) {
+      let partA = skeleton[j][0];
+      let partB = skeleton[j][1];
+      stroke(255, 0, 0);
+      line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
+    }
   }
 }

@@ -1,0 +1,22 @@
+#p5canvas-Gan, #p5canvas {
+    position: absolute;
+    top: 0;
+
+  }
+  #p5canvas {
+    left:0px;
+  }
+
+  #p5canvas-Gan {
+    left:640px;
+  }
+
+  #p5canvas {
+    
+    z-index: 100;
+  }
+
+  #nav {
+    position: absolute;
+    bottom:0;
+  }
