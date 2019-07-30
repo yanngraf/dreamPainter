@@ -1,5 +1,5 @@
-// The RunWay model SPADE Coco must be running 
-// On the "newtwork tab"
+// A RunWay model (SPADE-Coco / SPADE-LANDSCAPE) must be running 
+// Please check the readme file
 
 
 // ADD Photosketch
