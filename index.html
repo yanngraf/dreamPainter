@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>p5.js example</title>
+    <style> body {padding: 0; margin: 0;} </style>
+    <script src="libraries/p5.js"></script>
+    <script src="libraries/p5.dom.js"></script>
+    <script src="libraries/p5.sound.js"></script>
+  
+    <script src="https://unpkg.com/ml5@0.3.1/dist/ml5.min.js"></script>
+    <script language="javascript" type="text/javascript" src="libraries/socket.io.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <style>
+      #p5canvas-Gan, #p5canvas {
+        position: absolute;
+        top: 0;
+  
+      }
+      #p5canvas {
+        left:0px;
+      }
+
+      #p5canvas-Gan {
+        left:640px;
+      }
+
+      #p5canvas {
+        
+        z-index: 100;
+      }
+
+      #nav {
+        position: absolute;
+        bottom:0;
+      }
+    </style>
+
+  </head>
+  <body>
+
+
+      <div class="container">
+          <br>
+          <br>
+         <div class="row justify-content-md-center" style="display:none">
+           <video width="300" height="280" muted="muted"></video>
+           <!-- Canvas: Just to send base64 images to Runway -->
+           <canvas width="300" height="280" style="display: none;"></canvas>
+         </div>
+         <div class="row justify-content-md-center">
+           <!-- Control Buttos -->
+          
+         </div>
+         <div class="row justify-content-md-center">
+           <p id="status">Not Connected</p>
+         </div>
+           <!-- Connection status -->
+           <div id="p5canvas"></div>
+
+           <!-- Connection status -->
+           <div id="p5canvas-Gan">
+            <img src="" alt="" id="empty" style="width:640px">
+          </div>
+         </div>
+       </div>
+
+       <div id="nav">
+       <button id="start" class="btn btn-sm btn-primary">Start</button>
+       <button id="stop" class="btn btn-sm btn-primary">Stop</button>
+      </div>
+
+
+
+      <script src="sketch.js"></script>
+  </body>
+</html>
