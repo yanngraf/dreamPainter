@@ -2,7 +2,7 @@
 A motion tracking (poseNet) based GANpainter using RunWayML.
 This prototype was developed during a creative intelligence workshop at [Muda](https://muda.co) in July 2019.
 
-![DreamPainter](images/dreampainter.gif)
+![DreamPainter](images/dreamPainter.gif)
 
 ## Installation
 - Install the [Runway app](https://runwayml.com)
