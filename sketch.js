@@ -38,6 +38,7 @@ let distance_x_wrist;
 let distance_y_wrist;
 
 // Painter variable initialisation
+let controllerSide = "left";
 let paintStatus = false;
 let paintBrush = 0;
 let paintBrushSet = [];
@@ -45,6 +46,12 @@ let paintColor = 0;
 
 let paintBrushProximityCounter = 0;
 let brushName = "";
+
+
+let controller_x;
+let controller_y;
+let brush_x;
+let brush_y;
 
 let waitingSince;
 let color_background = 50;
@@ -166,6 +173,7 @@ function setup() {
 function draw() {
 
   background(color_background)
+
   drawHistory();
   drawHand();
 
@@ -179,6 +187,38 @@ function draw() {
 
 
 
+
+
+// Check if at least 1 wrist is above the nose
+function wristAboveNose() {
+  if (leftWrist_y < nose_y || rightWrist_y < nose_y ) {
+    //console.log("above Nose");
+    return true;
+  }
+}
+
+// Defines which side controls the brush
+function defineControllerSide (aboveNose, currentSide, latency) {
+  if (aboveNose) {
+    
+    // Check if the hand that is currently above the nose, is currently defined as controller
+    if (rightWrist_y < nose_y && leftWrist_y < nose_y ) {
+      console.log("Change nothing with the controller");
+
+    } else if (rightWrist_y > nose_y && leftWrist_y < nose_y && currentSide == "left" ) {
+
+      console.log("was left - stays left");
+    } else if (rightWrist_y < nose_y && leftWrist_y > nose_y ) {
+
+      console.log("Controller was left but goes right");
+      controllerSide = "right"
+    } else {
+      // Controller is now on the right
+      console.log("Controller stays left");
+      controllerSide = "left"
+    }
+  }
+}
 
 
 // Draw the controls
@@ -196,8 +236,12 @@ function drawHand() {
     // if poses are detect, reset the counter.
     waitingSince = 0;
 
+    defineControllerSide (wristAboveNose(),controllerSide,0)
+    switchControls ();
+    drawControls(controllerSide);
+
     // Check if hand is above nose && start painting
-    if (leftWrist_y < nose_y || rightWrist_y < nose_y ) {
+    if (wristAboveNose()) {
       paintStatus = true;
     } else {
       paintStatus = false;
@@ -215,7 +259,7 @@ function drawHand() {
       //ellipse(rightWrist_x, rightWrist_y, 40);
 
       // Adding a data point (vector) to the history
-      v = createVector(rightWrist_x,rightWrist_y,paintColor);
+      v = createVector(brush_x,brush_y,paintColor);
       history.push(v);
 
       // if the vector history is too long, start removing from the end
@@ -228,8 +272,7 @@ function drawHand() {
     distance_x_wrist = leftWrist_x - rightWrist_x;
     distance_y_wrist = leftWrist_y - rightWrist_y;
     
-    switchControls ();
-    drawControls();
+ 
   }
 }
 
@@ -275,24 +318,38 @@ function drawHistory() {
 
 
 // Draws the controllers
-function drawControls() {
+function drawControls(controllerSide) {
+
+
+  if (controllerSide == "left") {
+    controller_x = leftWrist_x;
+    controller_y = leftWrist_y;
+    brush_x = rightWrist_x;
+    brush_y = rightWrist_y;
+  } else {
+    controller_x = rightWrist_x;
+    controller_y = rightWrist_y;
+    brush_x = leftWrist_x;
+    brush_y = leftWrist_y;
+  }
+
 
   if (paintStatus == true) {
 
     fill("green");
-    text("controler off", leftWrist_x+10, leftWrist_y);
+    text("controler off", controller_x+10, controller_y);
   } else {
     fill("red")
-    text("controler on", leftWrist_x+10, leftWrist_y);
+    text("controler on", controller_x+10, controller_y);
   }
   // Draws the controller
-  ellipse(leftWrist_x, leftWrist_y, 10);
+  ellipse(controller_x, controller_y, 10);
   
 
   // Draws the airbrush
   fill(paintColor);
-  ellipse(rightWrist_x, rightWrist_y, 10);
-  text(brushName, rightWrist_x+10, rightWrist_y);
+  ellipse(brush_x, brush_y, 10);
+  text(brushName, brush_x+10, brush_y);
 
 }
 
