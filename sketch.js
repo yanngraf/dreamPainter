@@ -1,25 +1,20 @@
+// Created by Yann Graf
 // A RunWay model (SPADE-Coco / SPADE-LANDSCAPE) must be running 
 // Please check the readme file
-
-
-// ADD Photosketch
-// ADD credits for matteo / Muda workshop
-// 
+// ml5 PoseNet Example Copyright
 // Copyright (c) 2018 ml5
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
 
 // Settings
-let runwayModelName = "SPADE-LANDSCAPE";  // SPADE-COCO or SPADE-LANDSCAPE
+let runwayModelName = "SPADE-COCO";  // SPADE-COCO or SPADE-LANDSCAPE
 var socket = io.connect('http://127.0.0.1:3000/');
-
 let waitingTimeDuration = 200;
 
 // Initilizing the variables
 let poses = [];
 let history = [];
-
 let img;
 let raw = new Image();
 let video;
@@ -30,10 +25,8 @@ let v;
 let nose_y;
 let leftWrist_x;
 let leftWrist_y;
-
 let rightWrist_x;
 let rightWrist_y;
-
 let distance_x_wrist;
 let distance_y_wrist;
 
@@ -43,11 +36,8 @@ let paintStatus = false;
 let paintBrush = 0;
 let paintBrushSet = [];
 let paintColor = 0;
-
 let paintBrushProximityCounter = 0;
 let brushName = "";
-
-
 let controller_x;
 let controller_y;
 let brush_x;
@@ -57,10 +47,8 @@ let waitingSince;
 let color_background = 50;
 let color_background_set = 0;
 
-
 // For testing
 let waitingModeStatus = "on" // on or off (if "off" the background never changes) 
-
 
 
 // Wait until the page is loaded
@@ -157,14 +145,12 @@ function setup() {
     poses = results;
   });
 
-
   noStroke();
   textSize(20);
 
   // Hide the video element, and just show the canvas
   video.hide();
   paintColor = color(1, 0, 0)
-
 }
 
 
@@ -172,15 +158,13 @@ function setup() {
 
 function draw() {
 
-  background(color_background)
-
+  background(color_background);
+  background(0);
+  
   drawHistory();
   drawHand();
 
-  //drawSkeleton();
-
   waitingMode(waitingSince);
-  
   waitingSince++;
 }
 
@@ -294,7 +278,12 @@ function switchControls () {
       line(leftWrist_x, leftWrist_y, rightWrist_x, rightWrist_y);
       noStroke();
 
-      paintBrush = Math.floor(random(0,6));
+      var availableBrushes;
+      availableBrushes = paintBrushSet.length;
+      paintBrush = Math.floor(random(0,availableBrushes));
+
+      console.log(paintBrushSet);
+      console.log(paintBrush);
 
       paintColor = paintBrushSet[paintBrush][1];
       brushName = paintBrushSet[paintBrush][0];
@@ -320,7 +309,6 @@ function drawHistory() {
 // Draws the controllers
 function drawControls(controllerSide) {
 
-
   if (controllerSide == "left") {
     controller_x = leftWrist_x;
     controller_y = leftWrist_y;
@@ -333,30 +321,26 @@ function drawControls(controllerSide) {
     brush_y = leftWrist_y;
   }
 
-
   if (paintStatus == true) {
-
     fill("green");
     text("controler off", controller_x+10, controller_y);
   } else {
     fill("red")
     text("controler on", controller_x+10, controller_y);
   }
+
   // Draws the controller
   ellipse(controller_x, controller_y, 10);
-  
 
   // Draws the airbrush
   fill(paintColor);
   ellipse(brush_x, brush_y, 10);
   text(brushName, brush_x+10, brush_y);
-
 }
 
 
 // Attaches the drawer to one side
 function attachDrawerHand (currentDrawer) {
-
   if (leftWrist_y < rightWrist_y) {
     paintSide = "left";
   } else {
@@ -380,9 +364,7 @@ function waitingMode(time) {
 
     color_background_set = Math.floor(random(0,6));
     color_background = paintBrushSet[color_background_set][1];
-
     waitingSince = 0;
-    
   }
 }
 
@@ -406,9 +388,21 @@ function selectColorSet (runwayModelName) {
 
   if (runwayModelName == "SPADE-COCO") {
     // SPADE-COCO semantic map colors
-    paintBrushSet[0] = ["unlabeled", color(0,0,0)]; // default/unlabeled
-    paintBrushSet[1] = ["unlabeled2", color(1,1,1)]; // 
-    paintBrushSet[2] = ["unlabeled3", color(2,2,2)]; // 
+    paintBrushSet[0] = ["unlabeled", "#000000"]; // default/unlabeled
+    paintBrushSet[1] = ["person", "#d60000"]; // 
+    paintBrushSet[2] = ["bicycle", "#8c3bff"]; // 
+    paintBrushSet[3] = ["car", "#018700"]; // 
+    paintBrushSet[4] = ["motorcycle", "#00acc6"]; // 
+    paintBrushSet[5] = ["airplane", "#97ff00"]; // 
+    paintBrushSet[6] = ["bus", "#ff7ed1"]; // 
+    paintBrushSet[7] = ["train", "#6b004f"]; // 
+    paintBrushSet[8] = ["truck", "#ffa52f"]; // 
+    paintBrushSet[9] = ["boat", "#00009c"]; // 
+    paintBrushSet[10] = ["traffic light", "#857067"]; // 
+    paintBrushSet[11] = ["fire hydrant", "#004942"]; // 
+    paintBrushSet[12] = ["street sign", "#4f2a00"]; // 
+    paintBrushSet[13] = ["stop sign", "#00fdcf"]; // 
+    paintBrushSet[14] = ["parking meter", "#bcb6ff"]; // 
     console.log("semantic map for Model SPADE-COCO selected");
 
   } else {
@@ -436,17 +430,17 @@ function keyTyped() {
 
 // Posent Draw Skeleton
 
-// A function to draw the skeletons
-function drawSkeleton() {
-  // Loop through all the skeletons detected
-  for (let i = 0; i < poses.length; i++) {
-    let skeleton = poses[i].skeleton;
-    // For every skeleton, loop through all body connections
-    for (let j = 0; j < skeleton.length; j++) {
-      let partA = skeleton[j][0];
-      let partB = skeleton[j][1];
-      stroke(255, 0, 0);
-      line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
-    }
-  }
-}
+// // A function to draw the skeletons
+// function drawSkeleton() {
+//   // Loop through all the skeletons detected
+//   for (let i = 0; i < poses.length; i++) {
+//     let skeleton = poses[i].skeleton;
+//     // For every skeleton, loop through all body connections
+//     for (let j = 0; j < skeleton.length; j++) {
+//       let partA = skeleton[j][0];
+//       let partB = skeleton[j][1];
+//       stroke(255, 0, 0);
+//       line(partA.position.x, partA.position.y, partB.position.x, partB.position.y);
+//     }
+//   }
+// }
